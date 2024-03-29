@@ -1,0 +1,30 @@
+version: '3.10'
+
+services:
+  postgres:
+    restart: unless-stopped
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:      
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "root"
+      POSTGRES_DB: "database"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d database"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
+
+  populate_postgres:
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      RESET_DB: $RESET_DB
+      NB_ROWS: $NB_ROWS
+    tty: true
+    depends_on:
+      postgres:
+        condition: service_healthy
