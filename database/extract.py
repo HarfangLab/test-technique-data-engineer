@@ -3,7 +3,6 @@ Mimics an extraction process by generating a list of random elements that can
 populate our Tables
 """
 from datetime import datetime
-from functools import cache
 
 from tqdm import tqdm
 
@@ -17,12 +16,19 @@ from database.models.malware_family import MalwareFamily
 
 
 class ExtractData:
+    samples_list = []
+    analyzers_list = []
+    analysis_list = []
+    tags_list = []
+    tag_types = []
+    malware_families = []
+
     def __init__(self):
         self.faker = get_faker()
 
-    @cache
     def list_samples(self, nb_rows=20) -> list[Sample]:
-        samples_list = []
+        if self.samples_list:
+            return self.samples_list
 
         for _ in tqdm(range(nb_rows), desc="Creating samples", leave=False):
             sha256 = self.faker.sha256()
@@ -36,28 +42,31 @@ class ExtractData:
                 magic=magic,
             )
 
-            samples_list.append(sample)
+            self.samples_list.append(sample)
 
-        return samples_list
+        return self.samples_list
 
-    @cache
     def list_analyzers(self, nb_rows=20) -> list[Analyzer]:
-        analyzers_list = []
+        if self.analyzers_list:
+            return self.analyzers_list
 
         for _ in tqdm(range(nb_rows), desc="Creating analyzers", leave=False):
             analyzer = Analyzer(
                 id=self.faker.uuid4(),
                 name=self.faker.analyzer(),
-                analyzer_date=self.faker.date_between(datetime(2017,1, 1), datetime(2024, 2, 2))
+                analyzer_date=self.faker.date_between(
+                    datetime(2017, 1, 1), datetime(2024, 2, 2)
+                ),
             )
 
-            analyzers_list.append(analyzer)
+            self.analyzers_list.append(analyzer)
 
-        return analyzers_list
+        return self.analyzers_list
 
-    @cache
     def list_analysis(self, nb_rows=20) -> list[Analysis]:
-        analysis_list = []
+        if self.analysis_list:
+            return self.analysis_list
+
         samples_list = self.list_samples()
         analyzers_list = self.list_analyzers()
 
@@ -67,17 +76,20 @@ class ExtractData:
                 id=self.faker.uuid4(),
                 sample=self.faker.random_element(samples_list),
                 analyzer=analyzer,
-                analysis_date=self.faker.date_between(analyzer.analyzer_date, datetime(2024, 3, 3)),
+                analysis_date=self.faker.date_between(
+                    analyzer.analyzer_date, datetime(2024, 3, 3)
+                ),
                 is_malware=self.faker.random.randint(1, 100) > 80,
             )
 
-            analysis_list.append(analysis)
+            self.analysis_list.append(analysis)
 
-        return analysis_list
+        return self.analysis_list
 
-    @cache
     def list_tags(self, nb_rows=20) -> list[Tag]:
-        tags_list = []
+        if self.tags_list:
+            return self.tags_list
+
         samples_list = self.list_samples()
         tag_types_list = self.list_tag_types()
 
@@ -92,15 +104,25 @@ class ExtractData:
                 sample=self.faker.random_element(samples_list),
             )
 
-            tags_list.append(tag)
+            self.tags_list.append(tag)
 
-        return tags_list
+        return self.tags_list
 
-    @cache
     def list_tag_types(self) -> list[TagType]:
-        return [TagType(id=self.faker.uuid4(), name=t) for t in TAGS]
+        if self.tag_types:
+            return self.tag_types
 
+        self.tag_types = [TagType(id=self.faker.uuid4(), name=t) for t in TAGS]
 
-    @cache
+        return self.tag_types
+
     def list_malware_families(self) -> list[MalwareFamily]:
-        return [MalwareFamily(id=self.faker.uuid4(), name=f[1], alias=f[2]) for f in MALWARE_FAMILIES]
+        if self.malware_families:
+            return self.malware_families
+
+        self.malware_families = [
+            MalwareFamily(id=self.faker.uuid4(), name=f[1], alias=f[2])
+            for f in MALWARE_FAMILIES
+        ]
+
+        return self.malware_families
