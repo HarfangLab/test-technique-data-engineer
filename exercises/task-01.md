@@ -14,7 +14,7 @@ Each sample is analyzed by different analyzers. The results of the analyses are 
 
 A sample:
 - is a malware if the analysis made by an automatic analyzer on the sample found it as `is_malware`
-- is a goodware if all three automatic analyzers analyzed the sample and none of them found it as `is_malware`
+- is a goodware if at least three different automatic analyzers analyzed the sample and none of them found it as `is_malware`
 - maliciousness cannot be decided if the sample does not fulfill the malware nor goodware conditions
 
 
